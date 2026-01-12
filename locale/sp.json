@@ -1,0 +1,32 @@
+{
+  "Hello": "Hola",
+  "User": "Usuario",
+  "Home": "Inicio",
+  "ViewProfile": "Ver perfil",
+  "CreateProfile": "Crear perfil",
+  "DeleteProfile": "Eliminar perfil",
+  "AssignRoles": "Asignar rol",
+  "ChangePassword": "Cambiar contraseña",
+  "Logout": "Cerrar sesión",
+  "MyApp": "Mi aplicación",
+  "dashboardWelcome": "Bienvenido a tu panel. Administra tu perfil y explora las funciones.",
+  "ListUsers": "Lista de usuarios",
+  "Create": "Crear",
+  "FirstName": "Nombre",
+  "LastName": "Apellido",
+  "Email": "Correo electrónico",
+  "Password": "Contraseña",
+  "passwordsuggestion": "La contraseña debe contener al menos una letra mayúscula, una letra minúscula, un carácter especial y tener una longitud mínima de 8 caracteres.",
+   "Profile":"Perfil",
+   "Loading":"Cargando",
+   "All":"Todo",
+   "OldPassword":"Contraseña antigua",
+   "NewPassword":"Nueva contraseña",
+   "ConfirmPassword":"Confirmar contraseña",
+   "New":"Nuevo",
+   "Role":"Rol",
+    "AddProduct":"Añadir producto",
+       "ViewProduct":"Ver producto"
+
+
+}
