@@ -1,6 +1,6 @@
 
 "use client"
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { useRouter } from "next/navigation"
 export default function Login() {
   const router=useRouter()
@@ -12,12 +12,15 @@ export default function Login() {
   const [showPass, setShowPass] = useState(false);
   const[showtotp,setShowTotp]=useState(false)
   const[otp,setOtp]=useState("")
+  const [coolDown,setcoolDown]=useState(0)
+  const [clicked,setClicked]=useState(false)
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
    const handleSubmit=async(e)=>{
        e.preventDefault()
-        
+       if(coolDown>0) return
+        setClicked(true)
        try{
         const response=await fetch("https://auth-backend-c94t.onrender.com/api/auth/login-userr",{
           method:"POST",
@@ -28,15 +31,51 @@ export default function Login() {
          
           alert("Login Successfull")
           setShowTotp(true)
+        }else if(response.status===429){
+          const data=await response.json()
+          const expiryTime = Date.now() + data.retryAfter * 1000;
+  localStorage.setItem("loginCooldown", expiryTime);
+      setcoolDown(data.retryAfter);
+      setClicked(false)
+      alert(data.message)
         }
         else{
+           setClicked(false)
           alert("Wrong credentials")
+         
         }
        }
        catch(error){
         alert(error.message)
+        setClicked(false)
        }
    }
+   useEffect(() => {
+  const expiryTime = Number(localStorage.getItem("loginCooldown"));
+  if (!expiryTime) return;
+
+  const remaining = Math.floor((expiryTime - Date.now()) / 1000);
+
+  if (remaining > 0) {
+    setcoolDown(remaining);
+
+    const timer = setInterval(() => {
+      setcoolDown((prev) => {
+        if (prev <= 0) {
+          clearInterval(timer);
+          localStorage.removeItem("loginCooldown");
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer); // cleanup on unmount
+  } else {
+    localStorage.removeItem("loginCooldown");
+  }
+}, [coolDown]);
+
 
    const handleVerifyOtp=async()=>{
     try{
@@ -63,8 +102,9 @@ export default function Login() {
    }
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md bg-white shadow-md rounded-lg p-6 sm:p-8">
-        <h3 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-6">
+      <div className="w-full max-w-md bg-white p-6 sm:p-8 rounded-2xl shadow-2xl border-l-4 border-blue-500 hover:shadow-blue-400 transition-shadow duration-300">
+
+        <h3 className="text-2xl sm:text-3xl font-bold text-center text-blue-800 mb-6">
           Login
         </h3>
         <form className="space-y-4" onSubmit={handleSubmit}>
@@ -113,12 +153,35 @@ export default function Login() {
           </div>
 
           {/* Login Button */}
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white font-semibold py-2 rounded-md hover:bg-blue-700 transition-colors duration-200"
-          >
-            Login
-          </button>
+          
+  <button
+  type="submit"
+  disabled={clicked || showtotp || coolDown > 0}
+  className={`w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white p-3 rounded-lg 
+hover:scale-105 transform transition 
+${clicked || showtotp || coolDown > 0 
+  ? "opacity-70 cursor-not-allowed" 
+  : "hover:bg-blue-700"}`}
+
+>
+  {showtotp ? (
+    "Logged in"
+  ) : coolDown > 0 ? (
+    `Try again in ${Math.floor(coolDown / 60)}:${("0" + (coolDown % 60)).slice(-2)}`
+  ) : clicked ? (
+    <>
+     <span className="inline-block w-5 h-5 border-4 border-white border-t-transparent rounded-full animate-spin"></span>
+
+      Logging in...
+    </>
+  ) : (
+    "Login"
+  )}
+</button>
+
+
+
+
            {showtotp && (
           <div className="mb-4">
             <input

@@ -1,42 +1,37 @@
 "use client";
 import React, { useState } from "react";
 import QR from "../ORCode/page";
-import {useRouter} from "next/navigation"
+import { useRouter } from "next/navigation";
+
 export default function SignUp() {
-  const router= useRouter()
-  // State
+  const router = useRouter();
+
   const [formData, setFormData] = useState({
     firstname: "",
     lastname: "",
     email: "",
     password: "",
     cpassword: "",
-    generatePassword:false,
+    generatePassword: false,
   });
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
+  const [clicked, setClicked] = useState(false);
   const [emailVerified, setEmailVerified] = useState(false);
+  const [showPass, setShowPass] = useState(false);
+  const [showCPass, setShowCPass] = useState(false);
+  const [qr, setQr] = useState("");
 
-  const [showPass,setShowPass]=useState("")
-  const [showCPass,setShowCPass]=useState("")
-
-  const [qr,setQr]=useState("")
-  
-
-  // Handle input change
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData({
       ...formData,
-      [name]: type === "checkbox" ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     });
   };
 
-  // Send OTP
   const sendOtp = async () => {
-    if (!formData.email) {
-      return alert("Enter your email");
-    }
+    if (!formData.email) return alert("Enter your email");
 
     try {
       const response = await fetch(
@@ -44,25 +39,18 @@ export default function SignUp() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: formData.email })
+          body: JSON.stringify({ email: formData.email }),
         }
       );
-
       const data = await response.json();
-
-      if (response.ok) {
-        setOtpSent(true);
-        alert(data.message);
-      } else {
-        alert(data.message);
-      }
+      alert(data.message);
+      if (response.ok) setOtpSent(true);
     } catch (error) {
       console.error(error);
       alert("Error sending OTP");
     }
   };
 
-  // Verify OTP
   const handleVerifyEmail = async () => {
     if (!otp) return alert("Enter OTP");
 
@@ -72,243 +60,276 @@ export default function SignUp() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: formData.email, otp })
+          body: JSON.stringify({ email: formData.email, otp }),
         }
       );
-
       const data = await response.json();
-
-      if (response.ok) {
-        setEmailVerified(true);
-        alert(data.message);
-      } else {
-        alert(data.message);
-      }
+      alert(data.message);
+      if (response.ok) setEmailVerified(true);
     } catch (error) {
       console.error(error);
       alert("Error verifying OTP");
     }
   };
 
-  // Form submit
-  const handleSubmit = async(e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setClicked(true);
 
     if (!emailVerified) {
-      return alert("Please verify your email before signing up");
+      alert("Please verify your email before signing up");
+      setClicked(false);
+      return;
     }
 
     if (formData.password !== formData.cpassword) {
-      return alert("Passwords do not match");
+      alert("Passwords do not match");
+      setClicked(false);
+      return;
     }
-    const response= await fetch("https://auth-backend-c94t.onrender.com/api/auth/send-details",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({firstname:formData.firstname,lastname:formData.lastname,email:formData.email,password:formData.password})
-    })
-    const data=await response.json()
-    setQr(data.qr)
-    //data.qr code logic........to be written
-    alert("Sign up successful (Now scan the code and login)");
-    // TODO: Call backend signup API here
+
+    try {
+      const response = await fetch(
+        "https://auth-backend-c94t.onrender.com/api/auth/send-details",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            firstname: formData.firstname,
+            lastname: formData.lastname,
+            email: formData.email,
+            password: formData.password,
+          }),
+        }
+      );
+      const data = await response.json();
+      if (response.ok) {
+        setQr(data.qr);
+        alert("Sign up successful (Now scan the code and login)");
+      } else {
+        alert("Sign-Up failed");
+        setClicked(false);
+      }
+    } catch (error) {
+      alert(error.message);
+      setClicked(false);
+    }
   };
-const generatePass=()=>{
-  const chars="ABC234DEFGHIJKLMNOPQ@#RSTUefghijklVWXYYZabcdmnopqrstuvwxyz1567890!$%^&*()_-"
-  const length=8;
-  let password=""
-  for(let i=0;i<length;i++){
-    password+=chars.charAt(Math.floor(Math.random()*chars.length))
-  }
-  return password;
-}
+
+  const generatePass = () => {
+    const chars =
+      "ABC234DEFGHIJKLMNOPQ@#RSTUefghijklVWXYYZabcdmnopqrstuvwxyz1567890!$%^&*()_-";
+    let password = "";
+    for (let i = 0; i < 8; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return password;
+  };
+
   return (
     <>
-    {qr && <QR image={qr}/>}
-    {!qr&&<div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md"
+      {qr && <QR image={qr} />}
+      {!qr && (
+        <div className="flex items-center justify-center min-h-screen bg-blue-50 p-6">
+         <form className="bg-white p-10 rounded-2xl shadow-2xl border-l-4 border-blue-500 w-full max-w-md space-y-5 hover:shadow-blue-400 transition-shadow duration-300">
+  <h2 className="text-3xl font-bold text-center text-blue-800 mb-6">Sign Up</h2>
+
+  {/* First Name */}
+  <div className="mb-4">
+    <label className="block text-gray-700 font-medium mb-2">
+      First Name <span className="text-red-500">*</span>
+    </label>
+    <input
+      type="text"
+      name="firstname"
+      placeholder="Enter your first name"
+      value={formData.firstname}
+      onChange={handleChange}
+      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400 focus:outline-none"
+      required
+    />
+  </div>
+
+  {/* Last Name */}
+  <div className="mb-4">
+    <label className="block text-gray-700 font-medium mb-2">
+      Last Name <span className="text-red-500">*</span>
+    </label>
+    <input
+      type="text"
+      name="lastname"
+      placeholder="Enter your last name"
+      value={formData.lastname}
+      onChange={handleChange}
+      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400 focus:outline-none"
+      required
+    />
+  </div>
+
+  {/* Email */}
+  <div className="mb-4">
+    <label className="block text-gray-700 font-medium mb-2">
+      Email <span className="text-red-500">*</span>
+    </label>
+    <input
+      type="email"
+      name="email"
+      placeholder="Enter your email"
+      value={formData.email}
+      onChange={handleChange}
+      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400 focus:outline-none"
+      required
+      disabled={emailVerified}
+    />
+    {!emailVerified && (
+      <button
+        type="button"
+        onClick={sendOtp}
+        className="w-full mt-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white p-3 rounded-lg hover:scale-105 transform transition"
       >
-        <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
+        Send OTP
+      </button>
+    )}
+  </div>
 
-        {/* First Name */}
-        <label className="block mb-2 font-medium">
-          First Name<span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          name="firstname"
-          placeholder="Enter your first name"
-          value={formData.firstname}
-          onChange={handleChange}
-          className="w-full mb-4 p-2 border border-gray-300 rounded"
-          required
-        />
+  {/* OTP */}
+  {otpSent && !emailVerified && (
+    <div className="mb-4">
+      <input
+        type="number"
+        value={otp}
+        onChange={(e) => setOtp(e.target.value)}
+        placeholder="Enter OTP"
+        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400 focus:outline-none mb-2"
+      />
+      <button
+        type="button"
+        onClick={handleVerifyEmail}
+        className="w-full bg-green-500 text-white p-3 rounded-lg hover:scale-105 transform transition"
+      >
+        Verify Email
+      </button>
+    </div>
+  )}
 
-        {/* Last Name */}
-        <label className="block mb-2 font-medium">
-          Last Name<span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          name="lastname"
-          placeholder="Enter your last name"
-          value={formData.lastname}
-          onChange={handleChange}
-          className="w-full mb-4 p-2 border border-gray-300 rounded"
-          required
-        />
+  {/* Generate Password */}
+  <div className="mb-4">
+    <label className="flex items-center font-medium text-gray-700 mb-2">
+      <input
+        type="checkbox"
+        name="generatePassword"
+        checked={formData.generatePassword}
+        onChange={(e) => {
+          const checked = e.target.checked;
+          if (checked) {
+            const newPass = generatePass();
+            setFormData({
+              ...formData,
+              generatePassword: true,
+              password: newPass,
+              cpassword: newPass,
+            });
+          } else {
+            setFormData({
+              ...formData,
+              generatePassword: false,
+              password: "",
+              cpassword: "",
+            });
+          }
+        }}
+        disabled={!emailVerified}
+        className="mr-2"
+      />
+      Generate password for me
+    </label>
+  </div>
 
-        {/* Email */}
-        <label className="block mb-2 font-medium">
-          Email<span className="text-red-500">*</span>
-        </label>
-        <input
-          type="email"
-          name="email"
-          placeholder="Enter your email"
-          value={formData.email}
-          onChange={handleChange}
-          className="w-full mb-2 p-2 border border-gray-300 rounded"
-          required
-          disabled={emailVerified} // Disable after verification
-        />
-        {!emailVerified && (
-          <button
-            type="button"
-            onClick={sendOtp}
-            className="w-full mb-4 bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition"
-          >
-            Send OTP
-          </button>
-        )}
+  {/* Password */}
+  <div className="relative mb-4">
+  <label className="block text-gray-700 font-medium mb-2">
+    Password <span className="text-red-500">*</span>
+  </label>
 
-        {/* OTP Input */}
-        {otpSent && !emailVerified && (
-          <div className="mb-4">
-            <input
-              type="number"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              placeholder="Enter OTP"
-              className="w-full mb-2 p-2 border border-gray-300 rounded"
-            />
-            <button
-              type="button"
-              onClick={handleVerifyEmail}
-              className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600 transition"
-            >
-              Verify Email
-            </button>
-          </div>
-        )}
+  <div className="relative">
+    <input
+      type={showPass ? "text" : "password"}
+      name="password"
+      minLength="8"
+      maxLength="16"
+      pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#%&*]).*$"
+      placeholder="Enter your password"
+      value={formData.password}
+      onChange={handleChange}
+      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400 focus:outline-none pr-10"
+      required={!formData.generatePassword}
+      disabled={formData.generatePassword || !emailVerified}
+    />
+    <button
+      type="button"
+      className="absolute right-2 inset-y-0 flex items-center px-2 text-gray-600"
+      onClick={() => setShowPass(!showPass)}
+    >
+      {showPass ? "🙈" : "👁️"}
+    </button>
+  </div>
 
-<label className="block mb-2 font-medium">
-  <input
-    type="checkbox"
-    name="generatePassword"
-    checked={formData.generatePassword}
-    onChange={(e) => {
-      const checked = e.target.checked;
-      if (checked) {
-        // Generate password and set it in state
-        const newPass = generatePass();
-        setFormData({
-          ...formData,
-          generatePassword: true,
-          password: newPass,
-          cpassword: newPass
-        });
-      } else {
-        // Uncheck: reset passwords
-        setFormData({
-          ...formData,
-          generatePassword: false,
-          password: "",
-          cpassword: ""
-        });
-      }
-    }}
-    disabled={!emailVerified} 
-    className="mr-2"
-  />
-  Generate password for me
-</label>
-
-
-        {/* Password */}
-        <label className="block mb-2 font-medium">
-          Password<span className="text-red-500">*</span>
-        </label>
-         <div className="relative mb-4">
-        <input
-          type={showPass?"text":"password"}
-          name="password"
-          minLength="8"
-          maxLength="16"
-          pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#%&*]).*$"
-          placeholder="Enter your password"
-          value={formData.password}
-          onChange={handleChange}
-          className="w-full mb-4 p-2 border border-gray-300 rounded"
-          required={!formData.generatePassword}
-          disabled={formData.generatePassword||!emailVerified} // Only enabled after email verification
-        />
-
-<p className="text-green-600 text-sm mt-1">
-  Password must contain atleast 1 uppercase, 1 lowercase, 1 special character and min. length = 8
-</p>
-              <button
-            type="button"
-            className="absolute right-2 top-2 text-gray-600"
-            onClick={() => setShowPass(!showPass)}
-          >
-            {showPass ? "🙈" : "👁️"}
-          </button>
+  <p className="text-green-600 text-sm mt-1">
+    Must contain 1 uppercase, 1 lowercase, 1 special character, min 8 chars
+  </p>
 </div>
-        {/* Confirm Password */}
-        <label className="block mb-2 font-medium">
-          Confirm Password<span className="text-red-500">*</span>
-        </label>
-        <div className="relative mb-4">
-        <input
-          type={showCPass?"text":"password"}
-          name="cpassword"
-          placeholder="Retype your password"
-          value={formData.cpassword}
-          onChange={handleChange}
-          className="w-full mb-6 p-2 border border-gray-300 rounded"
-          required={!formData.generatePassword}
-          disabled={formData.generatePassword||!emailVerified}
-        />
-         <button
-            type="button"
-            className="absolute right-2 top-2 text-gray-600"
-            onClick={() => setShowCPass(!showCPass)}
-          >
-            {showCPass ? "🙈" : "👁️"}
-          </button>
+
+
+  {/* Confirm Password */}
+  <div className="relative mb-4">
+  <label className="block text-gray-700 font-medium mb-2">
+    Confirm Password <span className="text-red-500">*</span>
+  </label>
+
+  <div className="relative">
+    <input
+      type={showCPass ? "text" : "password"}
+      name="cpassword"
+      placeholder="Confirm your password"
+      value={formData.cpassword}
+      onChange={handleChange}
+      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400 focus:outline-none pr-10"
+      required={!formData.generatePassword}
+      disabled={formData.generatePassword || !emailVerified}
+    />
+    <button
+      type="button"
+      className="absolute right-2 inset-y-0 flex items-center px-2 text-gray-600"
+      onClick={() => setShowCPass(!showCPass)}
+    >
+      {showCPass ? "🙈" : "👁️"}
+    </button>
+  </div>
 </div>
-        {/* Submit Button */}
-        <button
-          type="submit"
-          className="w-full bg-purple-500 text-white p-2 rounded hover:bg-purple-600 transition"
-        >
-          Sign Up
-        </button>
-        <p className="text-center text-gray-700 mt-6 text-base sm:text-sm md:text-base lg:text-lg">
-  Already have an account?
-  <a 
-    href="/login" 
-    className="text-blue-600 font-semibold ml-1 hover:text-blue-800 hover:underline transition-colors duration-200"
+
+
+  {/* Submit */}
+  <button
+    type="submit"
+    disabled={clicked}
+    className="w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white p-3 rounded-lg hover:scale-105 transform transition"
   >
-    Login
-  </a>
-</p>
+    Sign Up
+  </button>
 
-      </form>
-    </div>}
-    
+  <p className="text-center text-gray-700 mt-4 text-base">
+    Already have an account?
+    <a
+      href="/login"
+      className="text-blue-800 font-semibold ml-1 hover:text-blue-900 hover:underline transition-colors duration-200"
+    >
+      Login
+    </a>
+  </p>
+</form>
+
+        </div>
+      )}
     </>
   );
 }

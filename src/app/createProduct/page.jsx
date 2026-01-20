@@ -1,5 +1,6 @@
 "use client"
 import React, { useState,useRef } from "react";
+import Navbar from "../Components/Navbar";
 
 export default function CreateProduct() {
   const [formData, setFormData] = useState({
@@ -59,8 +60,11 @@ export default function CreateProduct() {
   };
 
   return (
+    <>
+    <Navbar/>
+   
     <div className="flex justify-center items-center min-h-screen bg-gray-100 p-4">
-      <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-md">
+      <div className="w-full max-w-md bg-white p-6 rounded-lg shadow-2xl">
         <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
           Add a Product
         </h2>
@@ -158,5 +162,6 @@ export default function CreateProduct() {
         </form>
       </div>
     </div>
+     </>
   );
 }

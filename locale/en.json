@@ -13,7 +13,7 @@
   "ListUsers": "List Users",
   "Create": "Create",
   "FirstName": "First Name",
-  "LastName": "LastName",
+  "LastName": "Last Name",
   "Email": "Email",
   "Password": "Password",
   "passwordsuggestion": "Password must contain at least one uppercase letter, one lowercase letter, one special character, and be at least 8 characters long.",

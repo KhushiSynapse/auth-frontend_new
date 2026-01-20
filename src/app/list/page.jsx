@@ -1,100 +1,62 @@
-"use client"
+"use client";
 
 import React, { useEffect, useState } from "react";
-import {useRouter} from "next/navigation"
-import {useLang} from "../../context/LanguageContext"
+import { useRouter } from "next/navigation";
+import { useLang } from "../../context/LanguageContext";
+import Navbar from "../Components/Navbar";
+import { useGetUserListQuery } from "./ListUsersApi";
+
 
 export default function List() {
-  const [users, setList] = useState([]);
-  const[loading,setLoading]=useState(true)
-  const[loaded,setLoaded]=useState(false)
-  const{t,lang}=useLang()
-const router=useRouter()
-  useEffect(() => {
-    const listUsers = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await fetch(
-          "https://auth-backend-c94t.onrender.com/api/auth/list-users",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-              "Accept-Language":lang
-            },
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          setList(data);
-          setLoaded(true)
-        }else if(response.status===401){
-          alert("Token expired")
-          localStorage.removeItem("token")
-          router.push("/login")
-        }
-        else{
-            const data = await response.json();
-            alert(data.message)
-            router.push("/landing")
-        }
-      } catch (error) {
-        alert(error.message);
-        
-      }
-      finally{
-        setLoading(false)
-      }
-      
-    };
-    listUsers();
-  }, []);
   
+  const [loading, setLoading] = useState(true);
+  const { t, lang } = useLang();
+  const router = useRouter();
+  const {data:users=[],isLoading,error}=useGetUserListQuery()
+  
+ console.log(users)
 
-if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-xl font-semibold">{t.Loading}...</p>
-      </div>
-    );
-  }
+  {if (isLoading) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <h2 className="text-xl md:text-2xl font-semibold text-blue-600 animate-pulse">
+        Loading.....
+      </h2>
+    </div>
+  );
+}
+}
 
   return (
     <>
-  {loaded &&  <div className="flex justify-center items-start min-h-screen p-4 bg-gray-50">
-      <div className="w-full max-w-4xl">
-        <h2 className="text-2xl font-semibold mb-6 text-center">{t.All} {t.User}</h2>
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md mx-auto">
-            <thead className="bg-blue-500 text-white">
-              <tr>
-                <th className="py-2 px-4 text-left">{t.FirstName}</th>
-                <th className="py-2 px-4 text-left">{t.LastName}</th>
-                <th className="py-2 px-4 text-left">{t.Role}</th>
-                <th className="py-2 px-4 text-left">{t.Email}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user, index) => (
-                  <tr
-                    key={user.id || index}
-                    className="even:bg-gray-100 odd:bg-white hover:bg-gray-200 transition"
-                  >
-                    <td className="py-2 px-4">{user.firstname}</td>
-                    <td className="py-2 px-4">{user.lastname}</td>
-                    <td className="py-2 px-4">{user.role.name}</td>
-                    <td className="py-2 px-4 break-all">{user.email}</td>
-                  </tr>
-                ))
-             
-              }
-            </tbody>
-          </table>
+      <Navbar />
+      <div className="flex justify-center items-start min-h-screen p-4 bg-gray-50">
+        <div className="w-full max-w-5xl space-y-4">
+          <h2 className="text-2xl font-bold mb-4 text-center">
+            {t.All} {t.User}
+          </h2>
+
+          {/* User Cards - Horizontal row layout */}
+          {users.map((user, index) => (
+            <div
+              key={user._id || index}
+              className="bg-white rounded-lg shadow-2xl hover:shadow-2xl transition p-4 flex flex-row justify-between items-center gap-4 flex-wrap"
+            >
+              <p className="flex-1 font-medium text-gray-800">
+                {user.firstname} {user.lastname}
+              </p>
+              <p className="flex-1 text-gray-600">{user.role.name}</p>
+              <p className="flex-1 text-gray-600 break-words">{user.email}</p>
+            </div>
+          ))}
+
+          {users.length === 0 && (
+            <p className="text-center text-gray-500 mt-4">
+              No users found.
+            </p>
+          )}
         </div>
       </div>
-    </div> }
     </>
   );
 }
