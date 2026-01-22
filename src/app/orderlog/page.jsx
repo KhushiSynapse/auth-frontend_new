@@ -152,7 +152,7 @@ export default function OrderLog() {
           <h2 className="text-2xl font-bold text-gray-800">Orders</h2>
 
           <button
-            onClick={() => router.push("/landing")}
+            onClick={() => router.push("/adminpanel")}
             className="absolute right-4 text-gray-500 hover:text-gray-800 text-3xl font-bold transition"
             title="Close"
           >

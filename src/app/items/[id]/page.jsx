@@ -40,7 +40,7 @@ export default function Transaction() {
     getItemDetails();
   }, [id]);
  
-{if (loading) {
+if (loading) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <h2 className="text-xl md:text-2xl font-semibold text-blue-600 animate-pulse">
@@ -48,7 +48,7 @@ export default function Transaction() {
       </h2>
     </div>
   );
-}}
+}
   return (
     <>
       <Navbar />

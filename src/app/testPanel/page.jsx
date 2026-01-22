@@ -8,7 +8,7 @@ import { useGetOrderListQuery,orderApi } from "../orderlog/orderApi";
 import { socket } from "../socket/page";
 import { ListUsersApi ,useGetUserListQuery} from "../list/ListUsersApi";
 import { useDispatch,useSelector } from "react-redux";
-import Modal from "./Modal";
+import Modal from "../adminpanel/Modal";
 import {setOrdersPerDay, addOrderToChart, setRevenuePerDay,setOrderDistribution} from "../Slice/chartSlice"
 import {  BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ResponsiveContainer } from 'recharts';
 
@@ -16,6 +16,7 @@ export default function AdminDashboard() {
   const router = useRouter();
   const { t, setLang, dir, lang } = useLang();
  const dispatch=useDispatch()
+ const [stat,setStat]=useState({})
  const chartData=useSelector(state=>state.chart.ordersPerDay||[])
  console.log(chartData)
   const {data:orders=[],isLoading,error}=useGetOrderListQuery()
@@ -27,6 +28,18 @@ export default function AdminDashboard() {
   const [selectedDate, setSelectedDate] = useState(null);
   const date=new Date().toISOString().split("T")[0]
   const totalorder = chartData.find(item=>item.date===date)?.total||0;
+  useEffect(()=>{
+    const getStats=async()=>{
+      const response=await fetch("https://auth-backend-c94t.onrender.com/api/auth/get-stats",{
+        method:"GET"
+      })
+      const data=await response.json()
+      if(response.ok){
+       setStat(data)
+      }
+    }
+    getStats()
+  },[])
   const totalRevenue = React.useMemo(() => {
   return orders.reduce((sum, order) => {
     if (
@@ -151,36 +164,12 @@ dispatch(setOrderDistribution(statusDatewise))}
     dispatch(ListUsersApi.util.updateQueryData('getUserList',undefined,(draft)=>{
       draft.push(userdata)
     }))
-    dispatch(ListUsersApi.endpoints.getUserList.initiate(undefined, {
-  subscribe: true,     
-  forceRefetch: true,   
-}));
-
   }
-   
   socket.on("user:created",NewUser)
-  const deleteUser=({userID})=>{
-    dispatch(ListUsersApi.util.updateQueryData('getUserList',undefined,(draft)=>{
-      console.log(draft)
-      const index=draft.findIndex(user=>user._id===userID)
-      console.log(index)
-      if(index!==-1){
-        console.log(draft.splice(index,1))
-      }
-    }))
-   dispatch(ListUsersApi.endpoints.getUserList.initiate(undefined, {
-  subscribe: true,     
-  forceRefetch: true,   
-}));
-
-  }
- 
-  socket.on("user:deleted",deleteUser)
    return () => {
   socket.off("order:generated", NewData);
   socket.off("order:cancelled",handleCancelOrder)
   socket.off("user:created",NewUser)
-   socket.off("user:deleted",deleteUser)
 };
 
 },[dispatch])
@@ -209,12 +198,12 @@ dispatch(setOrderDistribution(statusDatewise))}
   const statCards = [
     {
       title: "Total Orders Today",
-      value: totalorder,
+      value: stat.totalOrders,
       color: "bg-blue-100 text-blue-800",
     },
     {
       title: "Total Revenue Today",
-      value: "$"+totalRevenue,
+      value: "$"+ stat.totalRevenue,
       color: "bg-green-100 text-green-800",
     },
     {
@@ -224,7 +213,7 @@ dispatch(setOrderDistribution(statusDatewise))}
     },
     {
       title: "Total Cancelled Payment",
-      value: totalCancelledPayments,
+      value: stat.cancelledPayments,
       color: "bg-red-100 text-red-800",
     },
   ];
@@ -266,7 +255,7 @@ dispatch(setOrderDistribution(statusDatewise))}
               </div>
             )}
           </div>
-
+{console.log("Pay"+stat.cancelledPayments)}
           {/* Orders / Transactions */}
           <div>
             <button

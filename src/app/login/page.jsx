@@ -1,7 +1,9 @@
 
 "use client"
 import React, { useState,useEffect } from "react";
+import {jwtDecode} from "jwt-decode";
 import { useRouter } from "next/navigation"
+
 export default function Login() {
   const router=useRouter()
   const [formData, setFormData] = useState({
@@ -10,6 +12,8 @@ export default function Login() {
     
   });
   const [showPass, setShowPass] = useState(false);
+  const [role,setRole]=useState("")
+  const [ok,setOk]=useState(false)
   const[showtotp,setShowTotp]=useState(false)
   const[otp,setOtp]=useState("")
   const [coolDown,setcoolDown]=useState(0)
@@ -50,8 +54,10 @@ export default function Login() {
         setClicked(false)
        }
    }
+   
    useEffect(() => {
   const expiryTime = Number(localStorage.getItem("loginCooldown"));
+  
   if (!expiryTime) return;
 
   const remaining = Math.floor((expiryTime - Date.now()) / 1000);
@@ -88,9 +94,9 @@ export default function Login() {
       if(response.ok){
          
           localStorage.setItem("token",data.token)
-          
-         router.push("/landing")
-      }
+         setOk(true)
+       }
+      
       
       else{
           alert("Wrong OTP")
@@ -100,6 +106,20 @@ export default function Login() {
       alert(error.message)
     }
    }
+   useEffect(()=>{
+    if(ok){
+      const token=localStorage.getItem("token")
+      const decoder=jwtDecode(token)
+      setRole(decoder.rolename)
+      if(role==="admin"){
+        router.push("/adminpanel")
+      }else{
+        router.push("/landing")
+      }
+
+    }
+   })
+   
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md bg-white p-6 sm:p-8 rounded-2xl shadow-2xl border-l-4 border-blue-500 hover:shadow-blue-400 transition-shadow duration-300">

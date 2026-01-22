@@ -16,13 +16,15 @@ export const ListUsersApi = createApi({
       return headers;
     },
   }),
-  keepUnusedDataFor:3600,
+  tagTypes: ["UserList"],
+ 
   endpoints: (builder) => ({
     getUserList: builder.query({
       query: () => ({
         url: "/list-users",
         method: "GET",
       }),
+      providesTags:["UserList"]
     }),
   }),
 });

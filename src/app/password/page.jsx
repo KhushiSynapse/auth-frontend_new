@@ -54,6 +54,11 @@ export default function ChangePassword() {
 
       if (response.ok) {
         alert("Password changed successfully!");
+        setFormData({
+    oldpassword: "",
+    newpassword: "",
+    cpassword: "",
+  });
       } else if (response.status === 401) {
         alert("Token expired");
         localStorage.removeItem("token");

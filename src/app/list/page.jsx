@@ -4,19 +4,51 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLang } from "../../context/LanguageContext";
 import Navbar from "../Components/Navbar";
-import { useGetUserListQuery } from "./ListUsersApi";
-
-
+import { useGetUserListQuery ,ListUsersApi} from "./ListUsersApi";
+import { socket } from "../socket/page";
+import { useDispatch} from "react-redux";
 export default function List() {
   
   const [loading, setLoading] = useState(true);
   const { t, lang } = useLang();
   const router = useRouter();
   const {data:users=[],isLoading,error}=useGetUserListQuery()
-  
+  const dispatch=useDispatch()
  console.log(users)
 
-  {if (isLoading) {
+  
+
+useEffect(() => {
+    const handleUserCreated = ({ userdata }) => {
+      dispatch(
+        ListUsersApi.util.updateQueryData('getUserList', undefined, (draft) => {
+          draft.push(userdata);
+        })
+      );
+      refetch()
+
+    };
+
+    const handleUserDeleted = ({ userID }) => {
+      dispatch(
+        ListUsersApi.util.updateQueryData('getUserList', undefined, (draft) => {
+          const index = draft.findIndex(u => u._id === userID);
+          if (index !== -1) draft.splice(index, 1);
+        })
+      );
+      refetch()
+
+    };
+
+    socket.on('user:created', handleUserCreated);
+    socket.on('user:deleted', handleUserDeleted);
+
+    return () => {
+      socket.off('user:created', handleUserCreated);
+      socket.off('user:deleted', handleUserDeleted);
+    };
+  }, [dispatch]);
+if (isLoading) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <h2 className="text-xl md:text-2xl font-semibold text-blue-600 animate-pulse">
@@ -25,8 +57,6 @@ export default function List() {
     </div>
   );
 }
-}
-
   return (
     <>
       <Navbar />

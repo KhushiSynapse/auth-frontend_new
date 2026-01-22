@@ -1,33 +1,27 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Navbar from "@/app/Components/Navbar";
-
+import {useParams} from "next/navigation"
 export default function Transaction() {
-  const router = useRouter();
-  const [list, setList] = useState([]);
+  const [data, setData] = useState({});
+  const {id}=useParams()
   const [loading,setLoading]=useState(true)
-
   useEffect(() => {
     const getTransaction = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(
-          "https://auth-backend-c94t.onrender.com/api/auth/get-transaction",
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await fetch(`https://auth-backend-c94t.onrender.com/api/auth/get-transactiondetails/${id}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
         const data = await response.json();
         if (response.ok) {
-          setList(data);
           setLoading(false)
+          setData(data);
         } else {
           alert("Error fetching transactions");
         }
@@ -39,7 +33,7 @@ export default function Transaction() {
     getTransaction();
   }, []);
 
- {if (loading) {
+  if (loading) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <h2 className="text-xl md:text-2xl font-semibold text-blue-600 animate-pulse">
@@ -48,117 +42,84 @@ export default function Transaction() {
     </div>
   );
 }
-}
+
   return (
-    <>
-      <Navbar />
+    <div className="min-h-screen bg-gray-50 px-4 py-6">
+      {/* Page Title */}
+      <h2 className="text-2xl md:text-3xl font-bold text-center mb-8">
+        Transaction History
+      </h2>
 
-      <div className="min-h-screen bg-gray-100 px-4 py-6">
-        {/* Heading Row */}
-       <div className="flex items-center justify-between px-4 md:px-6 mb-6 w-full">
-  <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
-    Transaction History
-  </h2>
-  <button
-    onClick={() => router.back()}
-    className="text-gray-600 hover:text-gray-800 text-2xl font-bold"
-  >
-    ✖
-  </button>
-</div>
+      {/* Transactions Container */}
+      <div className="max-w-4xl mx-auto space-y-6">
+        
+          <div
+            
+            className="bg-white shadow-md rounded-lg p-5 flex flex-col gap-2"
+          >
+            <p className="font-semibold text-lg text-gray-800">
+              Order #{data.orderId}
+            </p>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-gray-700">
+             
+              
+              <p>
+                <span className="font-medium">Payment Method:</span>{" "}
+                {data.paymentMethod}
+              </p>
+              <p>
+                <span className="font-medium">Status:</span>{" "}
+                {data.paymentStatus}
+              </p>
+            </div>
 
-        {/* Transactions Container */}
-        <div className="max-w-4xl mx-auto space-y-6">
-          {list.map((history, index) => (
-            <div
-              key={index}
-              className="bg-white rounded-xl shadow-2xl p-6  transition-shadow"
-            >
-              {/* Top Row: Order ID and Status */}
-              <div className="flex justify-between items-center mb-2">
-                <p className="text-lg font-semibold text-gray-800">
-                  Order #{history.orderId}
-                </p>
-                <p className="text-md font-medium text-gray-700">
-                  Status: {history.paymentStatus}
-                </p>
-              </div>
+            <div className="text-sm text-gray-600 mt-2 space-y-1">
+              <p>
+                <span className="font-medium">Paid At:</span>{" "}
+                {new Date(data.paymentPaidAt).toLocaleString("en-IN", {
+                  timeZone: "Asia/Kolkata",
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
+              </p>
 
-              {/* Payment Details */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-gray-700 mb-2">
-                <p>
-                  <span className="font-medium">Amount:</span> {history.amount}
-                </p>
-                <p className="text-right">
-                  <span className="font-medium">Currency:</span>{" "}
-                  {history.currency}
-                </p>
-                <p>
-                  <span className="font-medium">Payment Method:</span>{" "}
-                  {history.paymentMethod}
-                </p>
-              </div>
-
-              {/* Dates Section */}
-              <div className="text-gray-600 text-sm space-y-1">
-                <p>
-                  <span className="font-medium">Paid At:</span>{" "}
-                  {new Date(history.paymentPaidAt).toLocaleString("en-IN", {
+              {data.paymentCancelledAt && (
+                <p className="text-red-600">
+                  <span className="font-medium">Cancelled At:</span>{" "}
+                  {new Date(data.paymentCancelledAt).toLocaleString("en-IN", {
                     timeZone: "Asia/Kolkata",
                     dateStyle: "medium",
                     timeStyle: "short",
                   })}
                 </p>
+              )}
 
-                {history.paymentCancelledAt && (
-                  <p>
-                    <span className="font-medium">Cancelled At:</span>{" "}
-                    {new Date(history.paymentCancelledAt).toLocaleString(
-                      "en-IN",
-                      {
-                        timeZone: "Asia/Kolkata",
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      }
-                    )}
-                  </p>
-                )}
+              {data.refundRequestedAt && (
+                <p className="text-yellow-600">
+                  <span className="font-medium">Refund Requested:</span>{" "}
+                  {new Date(data.refundRequestedAt).toLocaleString("en-IN", {
+                    timeZone: "Asia/Kolkata",
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
+                </p>
+              )}
 
-                {history.refundRequestedAt && (
-                  <p>
-                    <span className="font-medium">Refund Requested:</span>{" "}
-                    {new Date(history.refundRequestedAt).toLocaleString(
-                      "en-IN",
-                      {
-                        timeZone: "Asia/Kolkata",
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      }
-                    )}
-                  </p>
-                )}
-
-                {history.paymentRefundedAt && (
-                  <p>
-                    <span className="font-medium">Refunded At:</span>{" "}
-                    {new Date(history.paymentRefundedAt).toLocaleString(
-                      "en-IN",
-                      {
-                        timeZone: "Asia/Kolkata",
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      }
-                    )}
-                  </p>
-                )}
-              </div>
+              {data.paymentRefundedAt && (
+                <p className="text-green-600">
+                  <span className="font-medium">Refunded At:</span>{" "}
+                  {new Date(data.paymentRefundedAt).toLocaleString("en-IN", {
+                    timeZone: "Asia/Kolkata",
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })}
+                </p>
+              )}
             </div>
-          ))}
-
-         
-        </div>
+          </div>
+       
       </div>
-    </>
+    </div>
   );
 }

@@ -56,7 +56,7 @@ export default function CreateUser() {
         router.push("/login");
       } else {
         alert(data.message);
-        router.push("/landing");
+        router.push("/adminpanel");
       }
     } catch (error) {
       alert(error.message);

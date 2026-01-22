@@ -3,53 +3,23 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import Navbar from "@/app/Components/Navbar";
+import {useGetOrderListQuery} from "../../orderlog/orderApi"
 
 export default function Details() {
-  const [order, setOrder] = useState({});
+ 
   const router = useRouter();
   const { id } = useParams();
   const fetchedRef = useRef(false);
   const searchParams = useSearchParams();
-
+  const {data:orders=[],isLoading,error}=useGetOrderListQuery()
+  const order=orders.find(o=>o._id===id)
   // Extract only the filter params
   const page = searchParams.get("pageNo");
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
 
-  const getDetails = async () => {
-    try {
-      const token = localStorage.getItem("token");
-
-      const response = await fetch(
-        `https://auth-backend-c94t.onrender.com/api/auth/get-orderdetails/${id}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setOrder(data);
-      } else {
-        alert(data.message);
-      }
-    } catch (error) {
-      alert(error.message);
-    }
-  };
-
-  useEffect(() => {
-    if (!fetchedRef.current) {
-      getDetails();
-      fetchedRef.current = true;
-    }
-  }, []);
-
+ 
+ 
  
   const buildQuery = () => {
     const params = new URLSearchParams();
@@ -58,6 +28,16 @@ export default function Details() {
     if (endDate) params.append("endDate", endDate);
     return params.toString();
   };
+  if (isLoading) {
+  return (
+    <>
+      <Navbar />
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-xl font-semibold">Loading order details...</p>
+      </div>
+    </>
+  );
+}
 
   return (
     <>

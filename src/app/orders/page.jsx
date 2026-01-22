@@ -10,6 +10,7 @@ export default function ViewOrder() {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [startDate,setStartDate]=useState("")
+  const [doSearch,setDoSearch]=useState("")
   const [endDate,setEndDate]=useState("")
   const [pageNo,setPageNo]=useState(1)
   const [totalPage,setTotalPage]=useState("")
@@ -26,7 +27,7 @@ const buildQuery = (page = pageNo) => {
   return params.toString();
 };
 useEffect(() => {
-  // Skip initial hydration to avoid pushing on first render
+
   if (!hydrated) return;
 
   const query = buildQuery(pageNo);
@@ -60,10 +61,11 @@ useEffect(() => {
 
   useEffect(() => {
     if(!hydrated) return
+   
     const OrderList = async () => {
       const token = localStorage.getItem("token");
       const params=new URLSearchParams()
-      if(pageNo) params.append("pageno",pageNo)
+      if(pageNo) params.append("pageNo",pageNo)
         if(startDate) params.append("startDate",startDate)
           if(endDate) params.append("endDate",endDate)
             if(search) params.append("search",search)
@@ -103,7 +105,7 @@ params.append("limit", limit);
       }
     };
     OrderList();
-  }, [refresh,pageNo,hydrated]);
+  }, [refresh,pageNo,hydrated,doSearch]);
 
   // Cancel order
   const handleCancel = async (id) => {
@@ -158,48 +160,24 @@ params.append("limit", limit);
   window.scrollTo({ top: 0, behavior: "smooth" });
 }, [pageNo]);
 
-  const handleSearch = async () => {
-    try {
-     
-      if(search||startDate||endDate){
-       setPageNo(1)
-      const token = localStorage.getItem("token");
-      const params=new URLSearchParams()
-      if(search) params.append("search",search)
-        if(startDate) params.append("startDate",startDate)
-          if(endDate) params.append("endDate",endDate)
-            params.append("pageno",pageNo)
-          params.append("limit",limit)
-      const response = await fetch(
-        `https://auth-backend-c94t.onrender.com/api/auth/get-searchOrder?${params.toString()}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      const data = await response.json();
-      if (response.ok) {
-        setList(data.result);
-        setTotalPage(data.totalPage)
-       
-      }
-      else alert(data.message);}
-      else{
-        alert("Search is empty")
-      }
-    } catch (error) {
-      alert(error.message);
-    }
-  };
+ const handleSearch = () => {
+  if (!search && !startDate && !endDate) {
+    alert("Search is empty");
+    return;
+  }
+
+  setPageNo(1);      // triggers useEffect
+  setLoading(true); 
+  setDoSearch(true)// optional UX improvement
+};
+
 
  const clearFilters=()=>{
     setStartDate("")
     setEndDate("")
     setSearch("")
     setPageNo(1)
+    setDoSearch(false)
     const params = new URLSearchParams();
   params.append("pageNo", 1); 
   params.append("limit", limit); 

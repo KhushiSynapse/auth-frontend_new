@@ -20,11 +20,7 @@ export default function Landing() {
   }, []);
 
   if (!lang) return null;
-  useEffect(() => {
-  if (role === "admin") {
-    router.push("/adminpanel");
-  }
-}, [role, router]);
+  
 
   const handleLogout = () => {
     if (localStorage.getItem("token")) {
@@ -168,7 +164,7 @@ export default function Landing() {
 
         <div className="w-full px-4 md:px-8 lg:px-12">
   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-    {roleCards[role].map((card, idx) => (
+    {roleCards[role]?.map((card, idx) => (
       <Link
         key={idx}
         href={card.href}

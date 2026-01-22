@@ -178,7 +178,7 @@ export default function ViewProfile() {
 
             {/* Close Button */}
             <button
-              onClick={() => router.push("/landing")}
+              onClick={() => router.back()}
               className="absolute top-4 right-4 text-white text-2xl hover:opacity-80 transition"
             >
               ✖
